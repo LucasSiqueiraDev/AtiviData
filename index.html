@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Diário de Bordo - Gestão de Atividades</title>
+  <!-- Fonte Google Fonts Inter -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #6d28d9;
+      --primary-hover: #5b21b6;
+      --primary-light: #f3e8ff;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text: #1e293b;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --danger: #ef4444;
+      --danger-hover: #dc2626;
+      --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      padding: 24px;
+    }
+
+    header {
+      max-width: 1200px;
+      margin: 0 auto 32px auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    h1 {
+      font-size: 1.8rem;
+      color: var(--primary);
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      cursor: pointer;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 18px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-primary {
+      background-color: var(--primary);
+      color: white;
+    }
+    .btn-primary:hover {
+      background-color: var(--primary-hover);
+    }
+
+    .btn-secondary {
+      background-color: var(--primary-light);
+      color: var(--primary);
+    }
+    .btn-secondary:hover {
+      background-color: #e9d5ff;
+    }
+
+    .btn-danger {
+      background-color: var(--danger);
+      color: white;
+    }
+    .btn-danger:hover {
+      background-color: var(--danger-hover);
+    }
+
+    main {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .grid-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 24px;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      padding: 20px;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    }
+
+    .card-img {
+      width: 100%;
+      height: 160px;
+      object-fit: cover;
+      border-radius: 8px;
+      margin-bottom: 12px;
+    }
+
+    .card-title {
+      font-size: 1.25rem;
+      color: var(--primary);
+      margin-bottom: 8px;
+      word-break: break-word;
+    }
+
+    .card-dates {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin-top: 12px;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-muted);
+      grid-column: 1 / -1;
+    }
+
+    /* Modal Styling */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+      padding: 16px;
+      z-index: 1000;
+    }
+
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .modal {
+      background: white;
+      border-radius: 16px;
+      width: 100%;
+      max-width: 600px;
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 28px;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .modal-header h2 {
+      color: var(--primary);
+    }
+
+    .close-btn {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: var(--text-muted);
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-group label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 6px;
+      font-size: 0.9rem;
+    }
+
+    .form-group input, .form-group textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.95rem;
+    }
+
+    .form-group textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 12px;
+    }
+
+    .detail-img {
+      width: 100%;
+      max-height: 300px;
+      object-fit: cover;
+      border-radius: 8px;
+      margin-bottom: 16px;
+    }
+
+    .detail-field {
+      margin-bottom: 14px;
+    }
+
+    .detail-field strong {
+      color: var(--primary);
+      display: block;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Diário de Bordo 📓</h1>
+    <div class="header-actions">
+      <button class="btn-primary" onclick="openFormModal()">+ Nova Atividade</button>
+      <button class="btn-secondary" onclick="exportData()">📤 Extrair (Backup)</button>
+      <button class="btn-secondary" onclick="triggerImport()">📥 Importar</button>
+      <input type="file" id="importInput" accept=".json" style="display: none;" onchange="importData(event)">
+    </div>
+  </header>
+
+  <main>
+    <div id="cardsGrid" class="grid-cards"></div>
+  </main>
+
+  <!-- MODAL FORMULÁRIO (CRIAR / EDITAR) -->
+  <div class="modal-overlay" id="formModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 id="formModalTitle">Nova Atividade</h2>
+        <button class="close-btn" onclick="closeModal('formModal')">&times;</button>
+      </div>
+      <form id="activityForm" onsubmit="saveActivity(event)">
+        <input type="hidden" id="activityId">
+        
+        <div class="form-group">
+          <label for="nome">Nome da Atividade *</label>
+          <input type="text" id="nome" required placeholder="Ex: Criação da página de Login">
+        </div>
+
+        <div class="form-group">
+          <label for="descricao">Explicação / Descrição *</label>
+          <textarea id="descricao" required placeholder="Descreva o que foi realizado nesta atividade..."></textarea>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="dataInicio">Data de Início</label>
+            <input type="date" id="dataInicio">
+          </div>
+          <div class="form-group">
+            <label for="dataFim">Data de Conclusão</label>
+            <input type="date" id="dataFim">
+          </div>
+          <div class="form-group">
+            <label for="prazo">Prazo Estimado</label>
+            <input type="date" id="prazo">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="dificuldade">O que tive dificuldade / Observações</label>
+          <textarea id="dificuldade" placeholder="Relate impedimentos, aprendizados ou dúvidas..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="foto">Foto / Anexo</label>
+          <input type="file" id="foto" accept="image/*" onchange="handleImageUpload(event)">
+          <input type="hidden" id="fotoBase64">
+          <img id="imgPreview" src="" style="display:none; width: 100%; height: 120px; object-fit: cover; margin-top: 10px; border-radius: 8px;">
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 20px;">
+          <button type="button" class="btn-secondary" onclick="closeModal('formModal')">Cancelar</button>
+          <button type="submit" class="btn-primary">Salvar Atividade</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL DE DETALHES -->
+  <div class="modal-overlay" id="detailModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 id="detailNome" style="word-break: break-word;"></h2>
+        <button class="close-btn" onclick="closeModal('detailModal')">&times;</button>
+      </div>
+      
+      <div id="detailContent"></div>
+
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 24px;">
+        <button class="btn-danger" id="btnDelete">Excluir</button>
+        <div style="display: flex; gap: 12px;">
+          <button class="btn-secondary" onclick="closeModal('detailModal')">Fechar</button>
+          <button class="btn-primary" id="btnEdit">Editar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let activities = JSON.parse(localStorage.getItem('diario_atividades')) || [];
+    let currentImageBase64 = "";
+
+    function saveToStorage() {
+      localStorage.setItem('diario_atividades', JSON.stringify(activities));
+    }
+
+    function renderCards() {
+      const grid = document.getElementById('cardsGrid');
+      grid.innerHTML = '';
+
+      if (activities.length === 0) {
+        grid.innerHTML = `
+          <div class="empty-state">
+            <h2>Nenhuma atividade registrada ainda</h2>
+            <p>Clique em "+ Nova Atividade" para adicionar o seu primeiro registro.</p>
+          </div>`;
+        return;
+      }
+
+      activities.forEach(act => {
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.onclick = () => openDetailModal(act.id);
+
+        let imgHtml = act.foto ? `<img src="${act.foto}" class="card-img">` : '';
+        
+        card.innerHTML = `
+          <div>
+            ${imgHtml}
+            <h3 class="card-title">${act.nome}</h3>
+            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 8px;">
+              ${act.descricao.length > 80 ? act.descricao.substring(0, 80) + '...' : act.descricao}
+            </p>
+          </div>
+          <div class="card-dates">
+            <span><strong>Início:</strong> ${act.dataInicio || 'N/A'}</span>
+            <span><strong>Prazo:</strong> ${act.prazo || 'N/A'}</span>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function handleImageUpload(e) {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onloadend = function() {
+          currentImageBase64 = reader.result;
+          document.getElementById('fotoBase64').value = currentImageBase64;
+          const preview = document.getElementById('imgPreview');
+          preview.src = currentImageBase64;
+          preview.style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    function openFormModal(id = null) {
+      document.getElementById('activityForm').reset();
+      document.getElementById('imgPreview').style.display = 'none';
+      currentImageBase64 = "";
+
+      if (id) {
+        const act = activities.find(a => a.id === id);
+        if (act) {
+          document.getElementById('formModalTitle').innerText = "Editar Atividade";
+          document.getElementById('activityId').value = act.id;
+          document.getElementById('nome').value = act.nome;
+          document.getElementById('descricao').value = act.descricao;
+          document.getElementById('dataInicio').value = act.dataInicio;
+          document.getElementById('dataFim').value = act.dataFim;
+          document.getElementById('prazo').value = act.prazo;
+          document.getElementById('dificuldade').value = act.dificuldade;
+          
+          if (act.foto) {
+            currentImageBase64 = act.foto;
+            document.getElementById('fotoBase64').value = act.foto;
+            const preview = document.getElementById('imgPreview');
+            preview.src = act.foto;
+            preview.style.display = 'block';
+          }
+        }
+      } else {
+        document.getElementById('formModalTitle').innerText = "Nova Atividade";
+        document.getElementById('activityId').value = "";
+      }
+
+      document.getElementById('formModal').classList.add('active');
+    }
+
+    function closeModal(modalId) {
+      document.getElementById(modalId).classList.remove('active');
+    }
+
+    function saveActivity(e) {
+      e.preventDefault();
+      const id = document.getElementById('activityId').value;
+      
+      const newActivity = {
+        id: id || Date.now().toString(),
+        nome: document.getElementById('nome').value,
+        descricao: document.getElementById('descricao').value,
+        dataInicio: document.getElementById('dataInicio').value,
+        dataFim: document.getElementById('dataFim').value,
+        prazo: document.getElementById('prazo').value,
+        dificuldade: document.getElementById('dificuldade').value,
+        foto: document.getElementById('fotoBase64').value || currentImageBase64
+      };
+
+      if (id) {
+        const index = activities.findIndex(a => a.id === id);
+        activities[index] = newActivity;
+      } else {
+        activities.unshift(newActivity);
+      }
+
+      saveToStorage();
+      renderCards();
+      closeModal('formModal');
+    }
+
+    function openDetailModal(id) {
+      const act = activities.find(a => a.id === id);
+      if (!act) return;
+
+      document.getElementById('detailNome').innerText = act.nome;
+
+      let contentHtml = '';
+      if (act.foto) {
+        contentHtml += `<img src="${act.foto}" class="detail-img">`;
+      }
+
+      contentHtml += `
+        <div class="detail-field"><strong>Descrição / Explicação</strong><p>${act.descricao}</p></div>
+        <div class="form-row" style="margin-bottom: 14px;">
+          <div class="detail-field"><strong>Data de Início</strong><p>${act.dataInicio || '-'}</p></div>
+          <div class="detail-field"><strong>Data de Conclusão</strong><p>${act.dataFim || '-'}</p></div>
+          <div class="detail-field"><strong>Prazo</strong><p>${act.prazo || '-'}</p></div>
+        </div>
+        <div class="detail-field"><strong>Dificuldades / Observações</strong><p>${act.dificuldade || 'Nenhuma registrada.'}</p></div>
+      `;
+
+      document.getElementById('detailContent').innerHTML = contentHtml;
+      
+      document.getElementById('btnEdit').onclick = () => {
+        closeModal('detailModal');
+        openFormModal(act.id);
+      };
+
+      document.getElementById('btnDelete').onclick = () => {
+        if (confirm('Tem certeza que deseja excluir esta atividade?')) {
+          activities = activities.filter(a => a.id !== act.id);
+          saveToStorage();
+          renderCards();
+          closeModal('detailModal');
+        }
+      };
+
+      document.getElementById('detailModal').classList.add('active');
+    }
+
+    // EXTRAIR / EXPORTAR DADOS
+    function exportData() {
+      if (activities.length === 0) {
+        alert("Não há dados para exportar.");
+        return;
+      }
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(activities, null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", `diario_de_bordo_backup_${new Date().toISOString().slice(0,10)}.json`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+    }
+
+    // IMPORTAR DADOS
+    function triggerImport() {
+      document.getElementById('importInput').click();
+    }
+
+    function importData(event) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const importedActivities = JSON.parse(e.target.result);
+          if (Array.isArray(importedActivities)) {
+            activities = importedActivities;
+            saveToStorage();
+            renderCards();
+            alert('Atividades importadas com sucesso!');
+          } else {
+            alert('Arquivo inválido. Certifique-se de escolher um arquivo .json de backup.');
+          }
+        } catch (err) {
+          alert('Erro ao ler o arquivo JSON.');
+        }
+      };
+      reader.readAsText(event.target.files[0]);
+    }
+
+    // Inicialização
+    renderCards();
+  </script>
+</body>
+</html>
